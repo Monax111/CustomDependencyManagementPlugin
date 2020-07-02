@@ -8,6 +8,7 @@ import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.testing.jacoco.tasks.JacocoReport
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.sonarqube.gradle.SonarQubeExtension
+import org.sonarqube.gradle.SonarQubePlugin
 import java.io.File
 
 
@@ -27,7 +28,9 @@ class CustomDependencyManagementPlugin : Plugin<Project> {
         }
 
         project.subprojects{
-            it.plugins.apply("ru.tim.dependency-management")
+            it.afterEvaluate {
+                it.plugins.apply("ru.tim.dependency-management")
+            }
         }
 
 
