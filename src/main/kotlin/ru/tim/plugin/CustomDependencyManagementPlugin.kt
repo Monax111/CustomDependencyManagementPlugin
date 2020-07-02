@@ -19,14 +19,17 @@ class CustomDependencyManagementPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         println("Applying Tim Plugin")
 
-        project.allprojects { subProject ->
-            configureSonar(subProject, project)
-            configureJava(subProject, javaVersion)
+        configureSonar(project)
 
-            subProject.afterEvaluate {
-                configureKotlin(it)
-            }
+        project.afterEvaluate {
+            configureKotlin(it)
+            configureJava(it, javaVersion)
         }
+
+        project.subprojects{
+            it.plugins.apply("ru.tim.dependency-management")
+        }
+
 
     }
 
@@ -47,12 +50,12 @@ class CustomDependencyManagementPlugin : Plugin<Project> {
         }
     }
 
-    private fun configureSonar(subProject: Project, project: Project) {
-        subProject.pluginManager.withPlugin("org.sonarqube") {
+    private fun configureSonar(project: Project) {
+        project.pluginManager.withPlugin("org.sonarqube") {
 
-            val pathToReport = "${subProject.buildDir}/report/jacoco/xml/jacocoTestReport.xml"
+            val pathToReport = "${project.buildDir}/report/jacoco/xml/jacocoTestReport.xml"
 
-            subProject.afterEvaluate {
+            project.afterEvaluate {
                 it.tasks.withType(JacocoReport::class.java).firstOrNull()?.also {
                     it.reports.also { report ->
                         report.xml.isEnabled = true
@@ -68,10 +71,10 @@ class CustomDependencyManagementPlugin : Plugin<Project> {
 
             }
 
-            subProject.extensions.getByType(SonarQubeExtension::class.java).also { sonar ->
+            project.extensions.getByType(SonarQubeExtension::class.java).also { sonar ->
                 sonar.properties {
-                    it.property("sonar.projectKey", "${project.name}:${subProject.name}")
-                    it.property("sonar.projectName", "${project.name}:${subProject.name}")
+                    it.property("sonar.projectKey", "${project.name}:${project.name}")
+                    it.property("sonar.projectName", "${project.name}:${project.name}")
                     it.property("sonar.exclusions", "**/generated-sources/**,")
                     it.property("sonar.coverage.exclusions", "**/configuration/**")
                     it.property("sonar.coverage.jacoco.xmlReportPaths", pathToReport)
